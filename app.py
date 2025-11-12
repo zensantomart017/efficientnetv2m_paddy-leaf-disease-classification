@@ -8,7 +8,11 @@ import io, json
 app = Flask(__name__)
 
 # Load model dan label
-model = tf.keras.models.load_model('models/best_stage2-V3.keras')
+try:
+    model = tf.keras.models.load_model('models/best_stage2-V3.keras')
+except Exception as e:
+    print(f"⚠️ Warning: Model gagal dimuat - {e}")
+    model = None
 
 with open("assets/labels.txt", "r") as f:
     labels = [line.strip() for line in f.readlines()]
