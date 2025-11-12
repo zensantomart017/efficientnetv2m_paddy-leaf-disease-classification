@@ -2,16 +2,20 @@ from flask import Flask, jsonify, request
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io, json
+import io, json, requests
 
 # Inisialisasi Flask
 app = Flask(__name__)
 
 # Load model dan label
+MODEL_URL = "https://huggingface.co/ZenMicro/model-EffNetV2-M/resolve/main/best_stage2-V3.keras"
 try:
-    model = tf.keras.models.load_model('models/best_stage2-V3.keras')
+    print("⬇️ Downloading model from Hugging Face...")
+    model_bytes = io.BytesIO(requests.get(MODEL_URL).content)
+    model = tf.keras.models.load_model(model_bytes)
+    print("✅ Model loaded successfully!")
 except Exception as e:
-    print(f"⚠️ Warning: Model gagal dimuat - {e}")
+    print("❌ Failed to load model:", e)
     model = None
 
 with open("assets/labels.txt", "r") as f:
