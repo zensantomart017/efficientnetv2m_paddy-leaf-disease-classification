@@ -1,0 +1,19 @@
+# Abaikan file model besar dan cache
+models/
+*.keras
+*.h5
+*.hdf5
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Folder sementara / log
+tmp/
+logs/
+*.log
+
+# File environment lokal
+.env
+.vscode/
+.idea/
