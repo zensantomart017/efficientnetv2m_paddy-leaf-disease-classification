@@ -2,21 +2,43 @@ from flask import Flask, jsonify, request
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io, json, requests
+import io, json, requests, tempfile, os
 
 # Inisialisasi Flask
 app = Flask(__name__)
 
 # Load model dan label
 MODEL_URL = "https://huggingface.co/ZenMicro/model-EffNetV2-M/resolve/main/best_stage2-V3.keras"
-try:
-    print("⬇️ Downloading model from Hugging Face...")
-    model_bytes = io.BytesIO(requests.get(MODEL_URL).content)
-    model = tf.keras.models.load_model(model_bytes)
-    print("✅ Model loaded successfully!")
-except Exception as e:
-    print("❌ Failed to load model:", e)
-    model = None
+
+def download_and_load_model():
+    try:
+        print("⬇️ Downloading model from Hugging Face...")
+        response = requests.get(MODEL_URL, stream=True)
+        response.raise_for_status()
+
+        # Simpan model ke file sementara
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as tmp:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    tmp.write(chunk)
+            tmp_path = tmp.name
+
+        print(f"📦 Model downloaded temporarily at: {tmp_path}")
+
+        # Load model dari file .keras
+        model_loaded = tf.keras.models.load_model(tmp_path)
+        print("✅ Model loaded successfully!")
+
+        # Hapus file sementara setelah berhasil load
+        os.remove(tmp_path)
+        print("🧹 Temporary file removed.")
+
+        return model_loaded
+    except Exception as e:
+        print(f"❌ Failed to load model: {e}")
+        return None
+
+model = download_and_load_model()
 
 with open("assets/labels.txt", "r") as f:
     labels = [line.strip() for line in f.readlines()]
